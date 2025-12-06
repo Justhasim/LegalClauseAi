@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
+    <title>Legal Chat - LegalClauseAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Custom scrollbar for the chat area */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #e5e7eb;
+            border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #d1d5db;
+        }
+
+        .typing-dot {
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes typing {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 flex flex-col h-[100dvh] overflow-hidden">
+
+    <!-- Top Banner -->
+    <div class="text-sm text-white w-full z-50 relative flex-shrink-0">
+        <div
+            class="flex flex-wrap items-center justify-center w-full py-1 font-medium text-sm text-white text-center bg-gradient-to-b from-orange-500 to-orange-600">
+            <p>Templates are live on prebuiltui!</p>
+            <a href="https://prebuiltui.com"
+                class="flex items-center gap-1 px-3 py-1 text-xs rounded-md text-orange-600 bg-white hover:bg-slate-200 transition active:scale-95 ml-3">
+                Check it out
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2.91797 7H11.0846" stroke="#F54900" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M7 2.9165L11.0833 6.99984L7 11.0832" stroke="#F54900" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </a>
+        </div>
+
+        <!-- Navigation -->
+        <nav
+            class="relative flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-3 bg-white text-gray-900 transition-all shadow overflow-visible">
+            <a href="https://prebuiltui.com">
+                <svg width="157" height="40" viewBox="0 0 157 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M47.904 28.28q-1.54 0-2.744-.644a5.1 5.1 0 0 1-1.904-1.82q-.672-1.148-.672-2.604v-3.864q0-1.456.7-2.604a4.9 4.9 0 0 1 1.904-1.792q1.204-.672 2.716-.672 1.82 0 3.276.952a6.44 6.44 0 0 1 2.324 2.52q.868 1.567.868 3.556 0 1.96-.868 3.556a6.5 6.5 0 0 1-2.324 2.492q-1.456.924-3.276.924m-7.196 5.32V14.56h3.08v3.612l-.532 3.276.532 3.248V33.6zm6.692-8.232q1.12 0 1.96-.504a3.6 3.6 0 0 0 1.344-1.456q.504-.924.504-2.128t-.504-2.128a3.43 3.43 0 0 0-1.344-1.428q-.84-.532-1.96-.532t-1.988.532a3.43 3.43 0 0 0-1.344 1.428q-.476.924-.476 2.128t.476 2.128a3.6 3.6 0 0 0 1.344 1.456q.868.504 1.988.504M56.95 28V14.56h3.08V28zm3.08-7.476-1.064-.532q0-2.548 1.12-4.116 1.148-1.596 3.444-1.596 1.008 0 1.82.364.812.365 1.512 1.176l-2.016 2.072a2.1 2.1 0 0 0-.812-.56 3 3 0 0 0-1.036-.168q-1.287 0-2.128.812-.84.811-.84 2.548m14.156 7.756q-2.016 0-3.64-.896a7 7 0 0 1-2.548-2.52q-.924-1.596-.924-3.584t.924-3.556a6.87 6.87 0 0 1 2.492-2.52q1.596-.924 3.528-.924 1.876 0 3.304.868a6.05 6.05 0 0 1 2.268 2.38q.84 1.512.84 3.444 0 .336-.056.7a7 7 0 0 1-.112.756H69.23v-2.52h9.436l-1.148 1.008q-.056-1.232-.476-2.072a3 3 0 0 0-1.204-1.288q-.756-.448-1.876-.448-1.176 0-2.044.504a3.43 3.43 0 0 0-1.344 1.428q-.476.896-.476 2.156t.504 2.212 1.428 1.484q.924.504 2.128.504 1.037 0 1.904-.364a4 4 0 0 0 1.512-1.064l1.96 1.988a6.3 6.3 0 0 1-2.38 1.736 7.6 7.6 0 0 1-2.968.588m15.91 0q-1.54 0-2.745-.644a5.1 5.1 0 0 1-1.904-1.82q-.672-1.148-.672-2.604v-3.864q0-1.456.7-2.604a4.9 4.9 0 0 1 1.904-1.792q1.204-.672 2.716-.672 1.821 0 3.276.952a6.44 6.44 0 0 1 2.324 2.52q.869 1.567.868 3.556 0 1.96-.868 3.556a6.5 6.5 0 0 1-2.324 2.492q-1.455.924-3.276.924M82.898 28V7.84h3.08v10.024l-.532 3.248.532 3.276V28zm6.692-2.632q1.12 0 1.96-.504a3.6 3.6 0 0 0 1.344-1.456q.504-.924.504-2.128t-.504-2.128a3.43 3.43 0 0 0-1.344-1.428q-.84-.532-1.96-.532t-1.988.532a3.43 3.43 0 0 0-1.344 1.428q-.476.924-.476 2.128.001 1.204.476 2.128a3.6 3.6 0 0 0 1.344 1.456q.87.504 1.988.504m15.067 2.912q-1.708 0-3.052-.756a5.5 5.5 0 0 1-2.072-2.072q-.728-1.344-.728-3.08V14.56h3.08v7.672q0 .98.308 1.68.336.672.952 1.036.643.364 1.512.364 1.344 0 2.044-.784.728-.812.728-2.296V14.56h3.08v7.812q0 1.764-.756 3.108a5.3 5.3 0 0 1-2.044 2.072q-1.317.728-3.052.728m8.976-.28V14.56h3.08V28zm1.54-15.904q-.783 0-1.316-.532-.504-.532-.504-1.316t.504-1.316a1.8 1.8 0 0 1 1.316-.532q.813 0 1.316.532t.504 1.316q0 .784-.504 1.316t-1.316.532M120.169 28V7.84h3.08V28zm8.552 0V8.96h3.08V28zm-3.22-10.64v-2.8h9.52v2.8zm17.274 10.92q-1.708 0-3.052-.756a5.5 5.5 0 0 1-2.072-2.072q-.728-1.344-.728-3.08V14.56h3.08v7.672q0 .98.308 1.68.336.672.952 1.036.643.364 1.512.364 1.344 0 2.044-.784.728-.812.728-2.296V14.56h3.08v7.812q0 1.764-.756 3.108a5.3 5.3 0 0 1-2.044 2.072q-1.317.728-3.052.728m8.977-.28V14.56h3.08V28zm1.54-15.904q-.785 0-1.316-.532-.504-.532-.504-1.316t.504-1.316a1.8 1.8 0 0 1 1.316-.532q.812 0 1.316.532t.504 1.316-.504 1.316-1.316.532"
+                        fill="#000" />
+                    <path
+                        d="m8.75 11.3 6.75 3.884 6.75-3.885M8.75 34.58v-7.755L2 22.939m27 0-6.75 3.885v7.754M2.405 15.408 15.5 22.954l13.095-7.546M15.5 38V22.939M29 28.915V16.962a2.98 2.98 0 0 0-1.5-2.585L17 8.4a3.01 3.01 0 0 0-3 0L3.5 14.377A3 3 0 0 0 2 16.962v11.953A2.98 2.98 0 0 0 3.5 31.5L14 37.477a3.01 3.01 0 0 0 3 0L27.5 31.5a3 3 0 0 0 1.5-2.585"
+                        stroke="#4F39F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </a>
+
+            <ul class="hidden md:flex items-center space-x-8 md:pl-28">
+                <li><a href="{{ url_for('home') }}" class="hover:text-indigo-600 transition-colors">Home</a></li>
+                <li><a href="{{ url_for('upload') }}" class="hover:text-indigo-600 transition-colors">Upload</a></li>
+                <li><a href="{{ url_for('chat') }}" class="hover:text-indigo-600 transition-colors">Chat</a></li>
+                <li><a href="{{ url_for('news') }}" class="hover:text-indigo-600 transition-colors">News Feed</a></li>
+            </ul>
+
+            {% if current_user.is_authenticated %}
+            <div class="hs-dropdown relative inline-flex ml-6 hidden md:flex">
+                {% set initials = (current_user.email.split('@')[0][:2] if current_user.email else 'AC')|upper %}
+                <button type="button"
+                    class="hs-dropdown-toggle py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-full border border-gray-200 bg-white text-gray-800 shadow hover:bg-gray-50 focus:outline-none"
+                    aria-haspopup="true" aria-expanded="false">
+                    <span
+                        class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-gray-700 text-xs font-semibold text-white">
+                        {{ initials }}
+                    </span>
+                    <svg class="ml-2 size-4 transition" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m6 9 6 6 6-6" />
+                    </svg>
+                </button>
+                <div class="hs-dropdown-menu hidden absolute right-0 top-full mt-2 w-56 z-50 bg-white shadow-lg rounded-lg border border-gray-200"
+                    role="menu" aria-orientation="vertical" aria-hidden="true">
+                    <div class="py-3 px-4 border-b border-gray-100">
+                        <p class="text-xs text-gray-500">Signed in as</p>
+                        <p class="text-sm font-medium text-gray-800 truncate">{{ current_user.email }}</p>
+                    </div>
+                    <div class="p-1">
+                        <a href="{{ url_for('home') }}"
+                            class="block py-2 px-3 text-sm rounded-lg hover:bg-gray-100">Profile</a>
+                        <a href="{{ url_for('logout') }}"
+                            class="block py-2 px-3 text-sm rounded-lg text-red-600 hover:bg-red-50">Logout</a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <a href="{{ url_for('login') }}"
+                class="hidden md:inline bg-white hover:bg-gray-50 border border-gray-300 ml-4 px-5 py-2 rounded-full text-sm transition-all">
+                Login
+            </a>
+            {% endif %}
+
+            <button aria-label="menu-btn" type="button"
+                class="menu-btn inline-block md:hidden active:scale-90 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
+                    <path
+                        d="M3 7a1 1 0 1 0 0 2h24a1 1 0 1 0 0-2zm0 7a1 1 0 1 0 0 2h24a1 1 0 1 0 0-2zm0 7a1 1 0 1 0 0 2h24a1 1 0 1 0 0-2z" />
+                </svg>
+            </button>
+
+            <div class="mobile-menu absolute top-full left-0 w-full bg-white shadow-sm p-6 hidden md:hidden z-50">
+                <ul class="flex flex-col space-y-4 text-lg">
+                    <li><a href="{{ url_for('home') }}" class="text-sm">Home</a></li>
+                    <li><a href="{{ url_for('upload') }}" class="text-sm">Upload</a></li>
+                    <li><a href="{{ url_for('chat') }}" class="text-sm">Chat</a></li>
+                    <li><a href="{{ url_for('news') }}" class="text-sm">News Feed</a></li>
+                </ul>
+                {% if current_user.is_authenticated %}
+                <div class="mt-4">
+                    {% set initials = (current_user.email.split('@')[0][:2] if current_user.email else 'AC')|upper %}
+                    <div class="flex items-center gap-3 py-2">
+                        <span
+                            class="inline-flex items-center justify-center size-10 rounded-full bg-gray-700 text-sm font-semibold text-white">
+                            {{ initials }}
+                        </span>
+                        <span class="text-gray-800 text-sm">{{ current_user.email }}</span>
+                    </div>
+                    <a href="{{ url_for('logout') }}"
+                        class="block mt-2 text-sm py-2 px-3 rounded-lg bg-red-50 text-red-600">Logout</a>
+                </div>
+                {% else %}
+                <a href="{{ url_for('login') }}"
+                    class="block bg-white text-gray-600 border border-gray-300 mt-6 text-sm hover:bg-gray-50 w-40 h-11 rounded-full flex items-center justify-center">
+                    Login
+                </a>
+                {% endif %}
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Chat Interface -->
+    <div class="flex-grow flex flex-col md:flex-row overflow-hidden relative">
+        <!-- Sidebar (History) - Hidden on mobile by default -->
+        <div class="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 h-full flex-shrink-0">
+            <div class="p-4 border-b border-gray-100">
+                <button
+                    class="flex items-center gap-2 w-full px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors text-sm font-medium">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    New Chat
+                </button>
+            </div>
+            <div class="flex-grow overflow-y-auto custom-scrollbar p-2 space-y-1">
+                <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Recent</div>
+                <!-- History Items -->
+                <button
+                    class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg truncate transition-colors">
+                    Understanding NDA
+                </button>
+                <button
+                    class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg truncate transition-colors">
+                    Rental Agreement Basics
+                </button>
+                <button
+                    class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg truncate transition-colors">
+                    Copyright Law India
+                </button>
+            </div>
+            <div class="p-4 border-t border-gray-100">
+                <div class="flex items-center gap-2 text-xs text-gray-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    LegalClauseAI v1.0
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="flex-grow flex flex-col h-full relative bg-white/50 backdrop-blur-sm">
+            <!-- Messages Container -->
+            <div id="chatContainer" class="flex-grow overflow-y-auto custom-scrollbar p-4 md:p-8 space-y-6 pb-32">
+                <!-- Welcome Message -->
+                <div class="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-50"
+                    id="welcomeState">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-2">
+                        <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-semibold text-gray-800">How can I help you today?</h2>
+                    <p class="text-gray-500 max-w-md">Ask me anything about Indian Law, contracts, or legal procedures.
+                    </p>
+                </div>
+                <!-- Messages will be appended here -->
+            </div>
+
+            <!-- Input Area -->
+            <div
+                class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-white via-white to-transparent pt-10 pb-6 px-4 md:px-8">
+                <div class="max-w-4xl mx-auto relative">
+                    <div
+                        class="relative flex items-end gap-2 bg-white border border-gray-200 rounded-2xl shadow-lg p-2 focus-within:ring-2 focus-within:ring-indigo-100 transition-shadow">
+                        <button
+                            class="p-2 text-gray-400 hover:text-indigo-600 transition-colors rounded-full hover:bg-gray-50">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
+                                </path>
+                            </svg>
+                        </button>
+                        <textarea id="chatInput" rows="1"
+                            class="w-full py-3 px-2 bg-transparent border-none focus:ring-0 resize-none max-h-32 overflow-y-auto text-gray-700 placeholder-gray-400"
+                            placeholder="Ask a legal question..."></textarea>
+                        <button id="sendBtn"
+                            class="p-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="text-center text-xs text-gray-400 mt-2">LegalClauseAI can make mistakes. Consider checking
+                        important information.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatContainer = document.getElementById('chatContainer');
+        const welcomeState = document.getElementById('welcomeState');
+
+        // Auto-resize textarea
+        chatInput.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+            if (this.value.trim() === '') {
+                this.style.height = 'auto';
+            }
+        });
+
+        // Handle Enter key
+        chatInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        sendBtn.addEventListener('click', sendMessage);
+
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // Hide welcome state on first message
+            if (welcomeState) {
+                welcomeState.style.display = 'none';
+            }
+
+            // Add User Message
+            appendMessage(message, 'user');
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+
+            // Simulate AI Thinking
+            const loadingId = appendLoading();
+
+            // Simulate Delay then Response
+            setTimeout(() => {
+                removeLoading(loadingId);
+                appendMessage("I am currently in the development phase. I cannot answer specific legal queries yet, but I'm learning!", 'ai');
+            }, 1500);
+        }
+
+        function appendMessage(text, sender) {
+            const div = document.createElement('div');
+            div.className = `flex w-full ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+
+            const innerHTML = sender === 'user'
+                ? `
+                <div class="max-w-[80%] md:max-w-[70%] bg-indigo-600 text-white rounded-2xl rounded-tr-none px-5 py-3 shadow-sm">
+                    <p class="text-sm md:text-base leading-relaxed">${text.replace(/\n/g, '<br>')}</p>
+                </div>
+                `
+                : `
+                <div class="flex gap-3 max-w-[90%] md:max-w-[80%]">
+                    <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0 mt-1">
+                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <div class="bg-white border border-gray-100 rounded-2xl rounded-tl-none px-5 py-3 shadow-sm">
+                        <p class="text-sm md:text-base leading-relaxed text-gray-800">${text}</p>
+                    </div>
+                </div>
+                `;
+
+            div.innerHTML = innerHTML;
+            chatContainer.appendChild(div);
+            scrollToBottom();
+        }
+
+        function appendLoading() {
+            const id = 'loading-' + Date.now();
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = 'flex w-full justify-start';
+            div.innerHTML = `
+                <div class="flex gap-3 max-w-[90%]">
+                    <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0 mt-1">
+                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <div class="bg-white border border-gray-100 rounded-2xl rounded-tl-none px-5 py-4 shadow-sm flex items-center gap-1">
+                        <div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+                    </div>
+                </div>
+            `;
+            chatContainer.appendChild(div);
+            scrollToBottom();
+            return id;
+        }
+
+        function removeLoading(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Mobile Menu Logic (Copied from other pages)
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuButton = document.querySelector('.menu-btn');
+            const mobileMenu = document.querySelector('.mobile-menu');
+
+            if (menuButton && mobileMenu) {
+                menuButton.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+
+            // Dropdown Logic
+            document.querySelectorAll('.hs-dropdown').forEach(dropdown => {
+                const toggle = dropdown.querySelector('.hs-dropdown-toggle');
+                const menu = dropdown.querySelector('.hs-dropdown-menu');
+                if (!toggle || !menu) return;
+
+                const closeMenu = () => { menu.classList.add('hidden'); toggle.setAttribute('aria-expanded', 'false'); };
+                const openMenu = () => { menu.classList.remove('hidden'); toggle.setAttribute('aria-expanded', 'true'); };
+
+                toggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    menu.classList.contains('hidden') ? openMenu() : closeMenu();
+                });
+
+                menu.addEventListener('click', (e) => {
+                    if (e.target.closest('a')) closeMenu();
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!dropdown.contains(e.target)) closeMenu();
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') closeMenu();
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

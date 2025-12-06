@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Signup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="min-h-screen flex items-center justify-center bg-gray-100">
+
+    <div
+        class="bg-white text-gray-500 max-w-96 mx-4 md:p-6 p-4 text-left text-sm rounded-xl shadow-[0px_0px_10px_0px] shadow-black/10">
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="mb-3">
+            {% for category, msg in messages %}
+            <div class="mb-2 p-2 rounded 
+                {% if category == 'success' %} bg-green-100 text-green-700 
+                {% elif category == 'danger' or category == 'warning' %} bg-red-100 text-red-700 
+                {% else %} bg-gray-100 text-gray-700 
+                {% endif %}">
+                {{ msg }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <h2 class="text-2xl font-semibold mb-6 text-center text-gray-800">Create an account</h2>
+
+        <form method="POST" action="{{ url_for('register') }}">
+
+            <input name="email"
+                class="w-full bg-transparent border my-3 border-gray-500/30 outline-none rounded-full py-2.5 px-4"
+                type="email" placeholder="Enter your email" required value="{{ request.form.get('email', '') }}">
+
+            <input name="password"
+                class="w-full bg-transparent border mt-1 border-gray-500/30 outline-none rounded-full py-2.5 px-4"
+                type="password" placeholder="Create a password" required>
+
+            <button type="submit" class="w-full mb-3 mt-4 bg-indigo-500 py-2.5 rounded-full text-white">
+                Sign up
+            </button>
+        </form>
+
+        <p class="text-center mt-4">
+            Already have an account?
+            <a href="{{ url_for('login') }}" class="text-blue-500 underline">Log in</a>
+        </p>
+
+
+
+    </div>
+
+</body>
+
+</html>
