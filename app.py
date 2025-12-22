@@ -9,6 +9,9 @@ from flask_bcrypt import Bcrypt
 from bson import ObjectId
 import markdown
 import json
+import feedparser
+import requests
+import re
 
 from parser.file_reader import read_file
 from parser.simplifier import simplify_text, simplify_text_stream
@@ -162,5 +165,56 @@ def chat():
 def news():
     return render_template('news.html')
 
+
+
+
+@app.route('/api/news')
+@login_required
+def get_news():
+    category = request.args.get('category', 'national')
+    rss_urls = {
+        'national': 'https://www.thehindu.com/news/national/feeder/default.rss',
+        'international': 'https://www.thehindu.com/news/international/feeder/default.rss',
+        'business': 'https://www.thehindu.com/business/feeder/default.rss',
+        'sport': 'https://www.thehindu.com/sport/feeder/default.rss',
+        'entertainment': 'https://www.thehindu.com/entertainment/feeder/default.rss',
+        'science': 'https://www.thehindu.com/sci-tech/science/feeder/default.rss'
+    }
+
+    
+    url = rss_urls.get(category, rss_urls['national'])
+    
+    try:
+        feed = feedparser.parse(url)
+        news_items = []
+        for entry in feed.entries:
+            # Extract image if available
+            image_url = None
+            if 'media_content' in entry:
+                image_url = entry.media_content[0]['url']
+            elif 'links' in entry:
+                for link in entry.links:
+                    if 'image' in link.get('type', ''):
+                        image_url = link.get('href')
+                        break
+            
+            # Fallback for image in description or summary
+            if not image_url and 'summary' in entry:
+                import re
+                img_match = re.search(r'<img src="([^"]+)"', entry.summary)
+                if img_match:
+                    image_url = img_match.group(1)
+
+            news_items.append({
+                'title': entry.title,
+                'link': entry.link,
+                'description': entry.summary if 'summary' in entry else '',
+                'published': entry.published if 'published' in entry else '',
+                'image': image_url
+            })
+        return json.dumps(news_items)
+    except Exception as e:
+        return json.dumps({'error': str(e)}), 500
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)

@@ -1,13 +1,15 @@
 import os
 from google import genai
 from google.genai import types
+from dotenv import load_dotenv
+load_dotenv()
 
 def simplify_text_stream(text):
     """
     Simplify legal text using Google Gemini, yielding chunks of text.
     """
     client = genai.Client(
-        api_key='AIzaSyDfgFk8tWEXTqu42NeALUPGyJDIYfBQ9eI'
+        api_key=os.environ.get("GAISTUDIO_KEY")
     )
 
     prompt = f"""

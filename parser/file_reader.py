@@ -40,3 +40,4 @@ def read_file(file):
         return read_image(file)
     else:
         raise ValueError("Unsupported file type")
+        
