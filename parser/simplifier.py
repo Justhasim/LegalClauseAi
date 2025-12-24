@@ -1,16 +1,20 @@
 import os
 from google import genai
 from google.genai import types
+from groq import Groq
 from dotenv import load_dotenv
 load_dotenv()
 
 def simplify_text_stream(text):
     """
-    Simplify legal text using Google Gemini, yielding chunks of text.
+    Simplify legal text using Google Gemini with Groq fallback.
     """
-    client = genai.Client(
-        api_key=os.environ.get("GAISTUDIO_KEY")
-    )
+    gemini_key = os.environ.get("GAISTUDIO_KEY")
+    groq_key = os.environ.get("GROQ_KEY")
+
+    # Truncate text to stay within token limits (approx 30,000 characters)
+    # This avoids the "Request too large" error on Groq's free tier.
+    truncated_text = text[:30000]
 
     prompt = f"""
 You are an expert legal simplifier. Your task is to summarize the provided legal document into a short, easy-to-read guide for a layperson.
@@ -47,28 +51,52 @@ You are an expert legal simplifier. Your task is to summarize the provided legal
 5.  **Maximum Length:** Keep the total output under 400 words if possible, unless the document is massive and complex.
 
 Legal Text to Simplify:
-{text}
+{truncated_text}
 """
 
-    contents = [
-        types.Content(
-            role="user",
-            parts=[types.Part(text=prompt)]
-        )
-    ]
+    # Try Gemini first
+    if gemini_key:
+        try:
+            client = genai.Client(api_key=gemini_key)
+            contents = [
+                types.Content(
+                    role="user",
+                    parts=[types.Part(text=prompt)]
+                )
+            ]
 
-    # Generate content stream
-    for chunk in client.models.generate_content_stream(
-        model="gemini-2.5-flash",
-        contents=contents,
-    ):
-        if chunk.candidates is None:
-            continue
-        candidate = chunk.candidates[0]
-        if candidate.content and candidate.content.parts:
-            part = candidate.content.parts[0]
-            if part.text:
-                yield part.text
+            for chunk in client.models.generate_content_stream(
+                model="gemini-2.0-flash-exp",
+                contents=contents,
+            ):
+                if chunk.candidates:
+                    candidate = chunk.candidates[0]
+                    if candidate.content and candidate.content.parts:
+                        part = candidate.content.parts[0]
+                        if part.text:
+                            yield part.text
+            return # Success
+        except Exception as e:
+            print(f"Gemini simplification failed, falling back to Groq: {e}")
+
+    # Fallback to Groq
+    if groq_key:
+        try:
+            client = Groq(api_key=groq_key)
+            # Using llama-3.1-8b-instant for fallback as it has higher rate limits
+            # but llama-3.3-70b-versatile is also fine if we truncate.
+            completion = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[{"role": "user", "content": prompt}],
+                stream=True,
+            )
+            for chunk in completion:
+                if chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
+        except Exception as e:
+            yield f"Error calling Groq API: {str(e)}"
+    else:
+        yield "Error: No API keys found for Gemini or Groq."
 
 def simplify_text(text):
     """

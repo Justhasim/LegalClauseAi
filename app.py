@@ -155,10 +155,36 @@ def stream_analysis():
 
     return Response(stream_with_context(generate()), mimetype='text/plain')
 
+from parser.chat_engine import chat_with_gemini_stream
+
 @app.route('/chat')
 @login_required
 def chat():
     return render_template('chat.html')
+
+@app.route('/chat_api', methods=['POST'])
+@login_required
+def chat_api():
+    try:
+        data = request.get_json()
+        message = data.get('message')
+        history = data.get('history', [])
+        
+        if not message:
+            return Response("No message provided", status=400)
+
+        def generate():
+            try:
+                for chunk in chat_with_gemini_stream(message, history):
+                    yield chunk
+            except Exception as e:
+                print(f"Error in chat stream: {e}")
+                yield f"Error: {str(e)}"
+
+        return Response(stream_with_context(generate()), mimetype='text/plain')
+    except Exception as e:
+        print(f"Error in chat_api: {e}")
+        return Response(str(e), status=500)
 
 @app.route('/news')
 @login_required
