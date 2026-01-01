@@ -61,6 +61,7 @@
 
       <ul class="hidden md:flex items-center space-x-8 md:pl-28">
         <li><a href="{{ url_for('home') }}">Home</a></li>
+        <li><a href="{{ url_for('learning') }}">Learning</a></li>
         <li><a href="{{ url_for('upload') }}">Upload</a></li>
         <li><a href="{{ url_for('chat') }}">Chat</a></li>
         <li><a href="{{ url_for('news') }}">News Feed</a></li>
@@ -120,6 +121,7 @@
       <div class="mobile-menu absolute top-full left-0 w-full bg-white shadow-sm p-6 hidden md:hidden z-50">
         <ul class="flex flex-col space-y-4 text-lg">
           <li><a href="{{ url_for('home') }}" class="text-sm">Home</a></li>
+          <li><a href="{{ url_for('learning') }}" class="text-sm">Learning</a></li>
           <li><a href="{{ url_for('upload') }}" class="text-sm">Upload</a></li>
           <li><a href="{{ url_for('chat') }}" class="text-sm">Chat</a></li>
           <li><a href="{{ url_for('news') }}" class="text-sm">News Feed</a></li>
