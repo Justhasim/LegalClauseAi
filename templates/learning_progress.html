@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Progress – LegalClause AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <nav class="flex items-center justify-between px-6 md:px-16 py-4 bg-white shadow-sm">
+        <a href="{{ url_for('learning') }}" class="flex items-center gap-2 text-indigo-600 font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd"
+                    d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                    clip-rule="evenodd" />
+            </svg>
+            Back to Dashboard
+        </a>
+        <span class="text-gray-900 font-bold text-xl">My Progress</span>
+        <div class="w-20"></div>
+    </nav>
+
+    <main class="flex-grow container mx-auto px-6 py-12 max-w-4xl">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
+                <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Total Visits</p>
+                <p class="text-4xl font-bold text-indigo-600">{{ progress.values() | sum }}</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
+                <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Modes Explored</p>
+                <p class="text-4xl font-bold text-green-600">{{ progress.keys() | length }} / 5</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
+                <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Current Level</p>
+                <p class="text-4xl font-bold text-orange-600">
+                    {% if (progress.values() | sum) > 20 %}Expert{% elif (progress.values() | sum) > 10 %}Intermediate{%
+                    else %}Beginner{% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+            <h2 class="text-xl font-bold text-gray-900 mb-8">Activity Breakdown</h2>
+            <div class="space-y-6">
+                {% set modes = [
+                ('law', 'Learn by Law / Act', 'bg-indigo-600'),
+                ('case', 'Case-Based Learning', 'bg-orange-500'),
+                ('exam', 'Exam Preparation Mode', 'bg-green-500'),
+                ('daily', 'Daily Legal Learning', 'bg-purple-500')
+                ] %}
+
+                {% for key, label, color in modes %}
+                {% set count = progress.get(key, 0) %}
+                {% set percentage = [count * 10, 100] | min %}
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium text-gray-700">{{ label }}</span>
+                        <span class="text-sm font-bold text-gray-500">{{ count }} topics</span>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-3">
+                        <div class="{{ color }} h-3 rounded-full transition-all duration-1000"
+                            style="width: {{ percentage }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

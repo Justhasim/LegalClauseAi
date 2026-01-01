@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case-Based Learning – LegalClause AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <nav class="flex items-center justify-between px-6 md:px-16 py-4 bg-white shadow-sm">
+        <a href="{{ url_for('learning') }}" class="flex items-center gap-2 text-indigo-600 font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd"
+                    d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                    clip-rule="evenodd" />
+            </svg>
+            Back to Dashboard
+        </a>
+        <span class="text-gray-900 font-bold text-xl">Case-Based Learning</span>
+        <div class="w-20"></div>
+    </nav>
+
+    <main class="flex-grow container mx-auto px-6 py-12 max-w-4xl">
+        <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm mb-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Legal Scenario</h2>
+            <div class="p-6 bg-indigo-50 rounded-xl text-gray-800 leading-relaxed border border-indigo-100">
+                {{ scenario }}
+            </div>
+        </div>
+
+        <form id="case-form" class="space-y-6">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Which Article/Section applies
+                    here?</label>
+                <input type="text" name="clause" placeholder="e.g. Article 21"
+                    class="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                    required>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Why do you think this applies?</label>
+                <textarea name="reasoning" rows="4" placeholder="Explain your reasoning..."
+                    class="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                    required></textarea>
+            </div>
+            <button type="submit"
+                class="w-full bg-indigo-600 text-white py-4 rounded-xl font-semibold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200">
+                Submit Answer
+            </button>
+        </form>
+
+        <div id="evaluation-result" class="hidden mt-12 space-y-6">
+            <h2 class="text-xl font-bold text-gray-900">AI Evaluation</h2>
+            <div id="evaluation-content" class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                <!-- Content will be injected here -->
+            </div>
+            <button onclick="location.reload()"
+                class="w-full bg-gray-100 text-gray-700 py-4 rounded-xl font-semibold hover:bg-gray-200 transition-all">
+                Try Another Case
+            </button>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('case-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const submitBtn = e.target.querySelector('button');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Evaluating...';
+
+            try {
+                const response = await fetch('/api/learning/evaluate-case', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        scenario: "{{ scenario }}",
+                        user_clause: formData.get('clause'),
+                        user_reasoning: formData.get('reasoning')
+                    }),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+
+                const resultDiv = document.getElementById('evaluation-result');
+                const contentDiv = document.getElementById('evaluation-content');
+
+                contentDiv.innerHTML = `
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-bold">Correct Clause</span>
+                        <span class="font-semibold text-gray-800">${data.correct_clause}</span>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="font-bold text-gray-900 text-sm uppercase tracking-wider">Reasoning</h4>
+                            <p class="text-gray-700">${data.reasoning}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-900 text-sm uppercase tracking-wider">Simple Explanation</h4>
+                            <p class="text-gray-700">${data.explanation}</p>
+                        </div>
+                    </div>
+                `;
+
+                resultDiv.classList.remove('hidden');
+                e.target.classList.add('hidden');
+                resultDiv.scrollIntoView({ behavior: 'smooth' });
+            } catch (error) {
+                alert('Error evaluating case. Please try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Answer';
+            }
+        });
+    </script>
+</body>
+
+</html>

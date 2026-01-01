@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from flask import Flask, render_template, request, redirect, url_for, flash, Response, stream_with_context
+from flask import Flask, render_template, request, redirect, url_for, flash, Response, stream_with_context, session
 from flask_pymongo import PyMongo
 from flask_login import LoginManager, UserMixin, login_user, current_user, login_required, logout_user
 from flask_bcrypt import Bcrypt
@@ -15,6 +15,8 @@ import re
 
 from parser.file_reader import read_file
 from parser.simplifier import simplify_text, simplify_text_stream
+from parser.chat_engine import chat_with_gemini_stream, chat_with_groq_stream, get_constitution_text
+import datetime
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")
@@ -191,6 +193,221 @@ def chat_api():
 def news():
     return render_template('news.html')
 
+@app.route('/learning')
+@login_required
+def learning():
+    return render_template('learning.html')
+
+@app.route('/learning/law')
+@login_required
+def learning_law():
+    track_progress('law')
+    return render_template('learning_law.html')
+
+@app.route('/learning/law/<law_name>')
+@login_required
+def learning_law_view(law_name):
+    # Sample data for Articles/Sections
+    data = {
+        'Constitution of India': [
+            {'id': 'Article 14', 'title': 'Equality before law'},
+            {'id': 'Article 19', 'title': 'Protection of certain rights regarding freedom of speech'},
+            {'id': 'Article 21', 'title': 'Protection of life and personal liberty'}
+        ],
+        'IPC': [
+            {'id': 'Section 300', 'title': 'Murder'},
+            {'id': 'Section 378', 'title': 'Theft'},
+            {'id': 'Section 420', 'title': 'Cheating and dishonestly inducing delivery of property'}
+        ],
+        'CrPC': [
+            {'id': 'Section 41', 'title': 'When police may arrest without warrant'},
+            {'id': 'Section 154', 'title': 'Information in cognizable cases (FIR)'}
+        ],
+        'Contract Act': [
+            {'id': 'Section 2', 'title': 'Interpretation-clause'},
+            {'id': 'Section 10', 'title': 'What agreements are contracts'}
+        ]
+    }
+    items = data.get(law_name, [])
+    return render_template('learning_law_view.html', law_name=law_name, items=items)
+
+@app.route('/learning/law/<law_name>/<item_id>')
+@login_required
+def learning_content(law_name, item_id):
+    # In a real app, we'd fetch the original text from a DB or PDF.
+    # Here we use sample text or AI to generate it if missing.
+    sample_texts = {
+        'Article 14': "The State shall not deny to any person equality before the law or the equal protection of the laws within the territory of India.",
+        'Article 21': "No person shall be deprived of his life or personal liberty except according to procedure established by law.",
+        'Section 378': "Whoever, intending to take dishonestly any moveable property out of the possession of any person without that person's consent, moves that property in order to such taking, is said to commit theft."
+    }
+    
+    original_text = sample_texts.get(item_id, f"Original legal text for {item_id} in {law_name}...")
+    
+    # Use AI to simplify and generate example/MCQ
+    prompt = f"""
+    Law: {law_name}
+    Clause: {item_id}
+    Text: {original_text}
+
+    Provide:
+    1. A very simple explanation for a student.
+    2. A real-life example.
+    3. One MCQ with 4 options and the correct answer.
+
+    Format the response as JSON:
+    {{
+        "explanation": "...",
+        "example": "...",
+        "mcq": {{
+            "question": "...",
+            "options": ["...", "...", "...", "..."],
+            "answer": "..."
+        }}
+    }}
+    """
+    
+    try:
+        # Using a non-streaming helper for this specific task
+        response_text = "".join(chat_with_groq_stream(prompt, system_instruction="You are a legal educator. Return ONLY JSON."))
+        # Basic JSON extraction in case AI adds markdown
+        json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+        if json_match:
+            ai_data = json.loads(json_match.group())
+        else:
+            raise ValueError("No JSON found")
+            
+        return render_template('learning_content.html', 
+                             law_name=law_name, 
+                             item_id=item_id, 
+                             original_text=original_text,
+                             simplified_explanation=ai_data['explanation'],
+                             example=ai_data['example'],
+                             mcq=ai_data['mcq'])
+    except Exception as e:
+        print(f"Error generating learning content: {e}")
+        return "Error loading content. Please try again later.", 500
+
+@app.route('/learning/case')
+@login_required
+def learning_case():
+    track_progress('case')
+    # Sample scenario
+    scenario = "Rahul was walking home at night when a police officer stopped him and arrested him without telling him the reason for the arrest. Rahul was not allowed to call his lawyer or family for 24 hours."
+    return render_template('learning_case.html', scenario=scenario)
+
+@app.route('/api/learning/evaluate-case', methods=['POST'])
+@login_required
+def evaluate_case():
+    data = request.json
+    prompt = f"""
+    Scenario: {data['scenario']}
+    User's Answer (Clause): {data['user_clause']}
+    User's Reasoning: {data['user_reasoning']}
+
+    Evaluate the user's answer.
+    Provide:
+    1. The correct legal clause (Article/Section).
+    2. A short reasoning.
+    3. A simple explanation.
+
+    Format as JSON:
+    {{
+        "correct_clause": "...",
+        "reasoning": "...",
+        "explanation": "..."
+    }}
+    """
+    try:
+        response_text = "".join(chat_with_groq_stream(prompt, system_instruction="You are a legal evaluator. Return ONLY JSON."))
+        json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+        return Response(json_match.group(), mimetype='application/json')
+    except Exception as e:
+        return json.dumps({"error": str(e)}), 500
+
+@app.route('/learning/exam')
+@login_required
+def learning_exam():
+    track_progress('exam')
+    return render_template('learning_exam.html')
+
+@app.route('/api/learning/generate-exam-answer', methods=['POST'])
+@login_required
+def generate_exam_answer():
+    data = request.json
+    prompt = f"""
+    Law: {data['law']}
+    Topic: {data['topic']}
+    Marks: {data['marks']}
+
+    Generate a structured exam-style answer.
+    Use headings like:
+    - Introduction
+    - Relevant Legal Provisions
+    - Key Points / Explanation
+    - Case Laws (if any)
+    - Conclusion
+
+    Keep the language simple but professional.
+    """
+    try:
+        answer = "".join(chat_with_groq_stream(prompt, system_instruction="You are a law professor helping a student. Use markdown for headings."))
+        return json.dumps({"answer": answer})
+    except Exception as e:
+        return json.dumps({"error": str(e)}), 500
+
+@app.route('/learning/daily')
+@login_required
+def learning_daily():
+    track_progress('daily')
+    
+    concepts = [
+        {
+            "title": "Right to Information",
+            "law": "RTI Act, 2005",
+            "clause": "Section 3",
+            "explanation": "Every citizen has the right to request information from a public authority.",
+            "example": "You can file an RTI to know the status of road repairs in your locality."
+        },
+        {
+            "title": "Presumption of Innocence",
+            "law": "Indian Evidence Act",
+            "clause": "Section 101",
+            "explanation": "A person is considered innocent until proven guilty in a court of law.",
+            "example": "The burden of proof lies on the prosecution to prove the accused committed the crime."
+        },
+        {
+            "title": "Bail as a Right",
+            "law": "CrPC",
+            "clause": "Section 436",
+            "explanation": "In bailable offenses, bail is a matter of right for the accused.",
+            "example": "If arrested for a minor traffic violation, you are entitled to bail immediately."
+        }
+    ]
+    
+    # Rotate based on day of year
+    day_of_year = datetime.datetime.now().timetuple().tm_yday
+    concept = concepts[day_of_year % len(concepts)]
+    
+    return render_template('learning_daily.html', concept=concept, date=datetime.datetime.now().strftime("%B %d, %Y"))
+
+@app.route('/learning/progress')
+@login_required
+def learning_progress():
+    progress = session.get('learning_progress', {})
+    return render_template('learning_progress.html', progress=progress)
+
+def track_progress(mode):
+    if 'learning_progress' not in session:
+        session['learning_progress'] = {}
+    
+    progress = session['learning_progress']
+    if mode not in progress:
+        progress[mode] = 0
+    progress[mode] += 1
+    session['learning_progress'] = progress
+    session.modified = True
+
 
 
 
@@ -243,4 +460,4 @@ def get_news():
         return json.dumps({'error': str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False)
+    app.run(debug=True, use_reloader=True)
