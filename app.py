@@ -2,6 +2,12 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+# Prevent proxy injection issues in certain SDKs (fixes Client.__init__ proxies error)
+os.environ.pop('HTTP_PROXY', None)
+os.environ.pop('HTTPS_PROXY', None)
+os.environ.pop('http_proxy', None)
+os.environ.pop('https_proxy', None)
+
 from flask import Flask, render_template, request, redirect, url_for, flash, Response, stream_with_context, session
 from flask_pymongo import PyMongo
 from flask_login import LoginManager, UserMixin, login_user, current_user, login_required, logout_user
