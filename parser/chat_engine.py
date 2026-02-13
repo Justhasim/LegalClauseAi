@@ -8,6 +8,10 @@ from groq import Groq
 
 load_dotenv()
 
+# Prevent 'proxies' error in Gemini SDK
+for var in ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy']:
+    os.environ.pop(var, None)
+
 CONSTITUTION_PATH = os.path.join(os.path.dirname(__file__), "..", "Documentation", "Constitution_of_India_2024_EnglishVersion.pdf")
 
 _constitution_text = None

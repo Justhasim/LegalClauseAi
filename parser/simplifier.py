@@ -5,6 +5,10 @@ from groq import Groq
 from dotenv import load_dotenv
 load_dotenv()
 
+# Prevent 'proxies' error in Gemini SDK
+for var in ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy']:
+    os.environ.pop(var, None)
+
 def simplify_text_stream(text):
     """
     Simplify legal text using Google Gemini with Groq fallback.

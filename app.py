@@ -1,12 +1,11 @@
 import os
+# AGGRESSIVE FIX: Strip all proxy settings BEFORE any other imports
+# This prevents the 'Client.__init__ proxies' error in Google GenAI SDK
+for var in ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy']:
+    os.environ.pop(var, None)
+
 from dotenv import load_dotenv
 load_dotenv()
-
-# Prevent proxy injection issues in certain SDKs (fixes Client.__init__ proxies error)
-os.environ.pop('HTTP_PROXY', None)
-os.environ.pop('HTTPS_PROXY', None)
-os.environ.pop('http_proxy', None)
-os.environ.pop('https_proxy', None)
 
 from flask import Flask, render_template, request, redirect, url_for, flash, Response, stream_with_context, session
 from flask_pymongo import PyMongo
