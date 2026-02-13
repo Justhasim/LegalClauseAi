@@ -40,10 +40,14 @@ def read_image(file):
     Note: Requires Tesseract-OCR installed on the system.
     """
     try:
-        # Common Windows path for Tesseract
-        tesseract_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-        if os.path.exists(tesseract_path):
-            pytesseract.pytesseract.tesseract_cmd = tesseract_path
+        # Tesseract path configuration
+        if os.name == 'nt': # Windows
+            tesseract_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+            if os.path.exists(tesseract_path):
+                pytesseract.pytesseract.tesseract_cmd = tesseract_path
+        else: # Linux/Production
+            # On Linux, tesseract is usually in the PATH after installation
+            pytesseract.pytesseract.tesseract_cmd = 'tesseract'
 
         image = Image.open(file)
         # Simple extraction for English

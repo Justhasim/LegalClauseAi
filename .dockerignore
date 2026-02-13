@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+.git
+.gitignore
+.vscode/
+.agent/
+*.log
+Data/
+# Ignore heavy local data if not needed in production
+Documentation/*.pdf
+!Documentation/Constitution_of_India_2024_EnglishVersion.pdf
