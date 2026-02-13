@@ -21,26 +21,23 @@ import datetime
 app = Flask(__name__, static_folder="static", template_folder="templates")
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")
 
+# Production-ready MongoDB connection
 mongo_uri = os.environ.get("MONGO_URI") or os.environ.get("MONGODB_URI")
 if not mongo_uri:
-    raise RuntimeError("No MongoDB URI found. Set MONGO_URI or MONGODB_URI in .env")
+    raise RuntimeError("No MongoDB URI found. Set MONGO_URI in .env")
 
-if "?" in mongo_uri:
-    head, tail = mongo_uri.split("?", 1)
-    if head.endswith("/"):
-        head = head + "legalclause"
-    elif "/" not in head.split("://", 1)[1]:
-        head = head + "/legalclause"
-    mongo_uri = head + "?" + tail
-else:
-    after_scheme = mongo_uri.split("://", 1)[1]
-    if "/" not in after_scheme:
-        if mongo_uri.endswith("/"):
-            mongo_uri = mongo_uri + "legalclause"
-        else:
-            mongo_uri = mongo_uri + "/legalclause"
+# Ensure the database name "legalclause" is included in the URI
+if "mongodb.net" in mongo_uri and "/legalclause" not in mongo_uri:
+    if "?" in mongo_uri:
+        mongo_uri = mongo_uri.replace(".net/", ".net/legalclause")
+        if ".net/?" in mongo_uri:
+            mongo_uri = mongo_uri.replace(".net/?", ".net/legalclause?")
+    else:
+        mongo_uri = mongo_uri.rstrip("/") + "/legalclause"
 
 app.config["MONGO_URI"] = mongo_uri
+app.config["MONGO_CONNECT_TIMEOUT_MS"] = 30000
+app.config["MONGO_SERVER_SELECTION_TIMEOUT_MS"] = 30000
 
 mongo = PyMongo(app)
 bcrypt = Bcrypt(app)
