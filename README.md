@@ -84,4 +84,4 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-**Developed for SEM 5 Project - Legal Awareness Initiative.**
+**Developed for TYDS Sem 6 Project - Legal Awareness Initiative.**
