@@ -100,9 +100,9 @@ def chat_with_gemini_stream(message, history=None):
                 parts=[types.Part(text=message)]
             ))
 
-            # Using gemini-2.0-flash-exp
+            # Using gemini-1.5-flash (Standard stable model)
             for chunk in client.models.generate_content_stream(
-                model="gemini-2.0-flash-exp",
+                model="gemini-1.5-flash",
                 contents=contents,
                 config=types.GenerateContentConfig(
                     system_instruction=system_instruction

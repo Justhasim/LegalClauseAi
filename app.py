@@ -131,12 +131,17 @@ def upload():
         if file:
             try:
                 text = read_file(file)
-            except ValueError as e:
-                return f"<h3>{str(e)}</h3>"
+                if text.startswith("Error:"):
+                    flash(text, "danger")
+                    return redirect(url_for('upload'))
+            except Exception as e:
+                flash(f"Error processing document: {str(e)}", "danger")
+                return redirect(url_for('upload'))
         elif text_input:
             text = text_input
         else:
-            return "<h3>No file or text provided</h3>"
+            flash("No file or text provided", "warning")
+            return redirect(url_for('upload'))
         
         return render_template('result.html', original_text=text)
         

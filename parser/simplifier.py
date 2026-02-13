@@ -66,7 +66,7 @@ Legal Text to Simplify:
             ]
 
             for chunk in client.models.generate_content_stream(
-                model="gemini-2.0-flash-exp",
+                model="gemini-1.5-flash",
                 contents=contents,
             ):
                 if chunk.candidates:
